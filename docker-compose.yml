@@ -1,0 +1,29 @@
+version: '3.9'
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: pose_plus
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports: ['5432:5432']
+    volumes: ['postgres_data:/var/lib/postgresql/data']
+
+  backend:
+    build: ./backend
+    ports: ['8000:8000']
+    depends_on: [db]
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/pose_plus
+
+  frontend:
+    image: node:20
+    working_dir: /app
+    volumes: ['./frontend:/app']
+    command: sh -c "npm install && npm run dev"
+    ports: ['3000:3000']
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:8000/api
+    depends_on: [backend]
+volumes:
+  postgres_data:
